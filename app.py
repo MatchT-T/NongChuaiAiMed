@@ -2,16 +2,20 @@ import streamlit as st
 st.set_page_config(layout="wide")
 import openai
 import os
-import geopy
-from geopy.geocoders import Nominatim
-import requests
+import streamlit as st
+from PIL import Image
 import streamlit as st
 from dotenv import load_dotenv
+
+logo = Image.open("logo.png")
+st.image(logo, width=150)
 
 load_dotenv()
 
 # Read OpenAI API key
 openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
+
+st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
 
 st.title('NongChuai AI Healthcare Assistant')
 
