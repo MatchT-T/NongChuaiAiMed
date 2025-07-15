@@ -1,0 +1,14 @@
+credentials:
+  usernames:
+    user1:
+      name: สมชาย
+      password: '123'  # plaintext for now (can be hashed later)
+    user2:
+      name: สมหญิง
+      password: '456'
+cookie:
+  name: nongchuai_cookie
+  key: some_random_key
+  expiry_days: 30
+preauthorized:
+  emails: []
