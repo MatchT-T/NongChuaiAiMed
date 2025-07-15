@@ -2,10 +2,10 @@ credentials:
   usernames:
     user1:
       name: สมชาย
-      password: '123'
+      password: '$2b$12$g6TPQZSKgKGgUmPpdrDFne4wCIeqxcaKZjc.Vl5b5o.Lm9Nq8t/1.'
     user2:
       name: สมหญิง
-      password: '456'
+      password: '$2b$12$MOU8nUhxSy.oSMYVHZyvG.HW5yLHq2u1PaQd6mlwB3mkmNyAksBwO'
 
 cookie:
   name: nongchuai_cookie
