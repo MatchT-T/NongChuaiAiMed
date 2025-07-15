@@ -2,6 +2,8 @@ import streamlit as st
 from PIL import Image
 import openai
 import os
+import base64
+from io import BytesIO
 from dotenv import load_dotenv
 
 # App setup
@@ -11,12 +13,18 @@ load_dotenv()
 # OpenAI API Key
 openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
 
-# Load logo
+# Load logo and convert to base64
 logo = Image.open("logo.png")
+buffered = BytesIO()
+logo.save(buffered, format="PNG")
+img_str = base64.b64encode(buffered.getvalue()).decode()
 
 # Centered title and logo
 st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
-st.image(logo, width=200, use_column_width=False)
+st.markdown(
+    f"<div style='text-align: center;'><img src='data:image/png;base64,{img_str}' width='200'/></div>",
+    unsafe_allow_html=True
+)
 
 # Input symptom
 text_input = st.text_input("พิมพ์อาการของคุณ (Type your symptoms):")
@@ -55,3 +63,4 @@ if text_input:
 
 # Info footer
 st.info("กรุณาพิมพ์อาการของคุณ แล้วรอรับคำแนะนำเป็นข้อความ")
+
