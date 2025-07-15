@@ -1,48 +1,48 @@
 import streamlit as st
 import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
 from PIL import Image
 import openai
 import os
 from dotenv import load_dotenv
 
-# --- App Config ---
+# --- Config and API setup ---
 st.set_page_config(page_title="น้องช่วย", layout="wide")
 load_dotenv()
 openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
 
-# --- Dummy user login setup ---
-names = ['สมชาย', 'สมหญิง']
-usernames = ['user1', 'user2']
-passwords = ['123', '456']
-
-hashed_passwords = stauth.Hasher(passwords).generate()
+# --- Load authenticator config from YAML ---
+with open('config.yaml') as file:
+    config = yaml.load(file, Loader=SafeLoader)
 
 authenticator = stauth.Authenticate(
-    names,
-    usernames,
-    hashed_passwords,
-    "nongchuai_cookie",
-    "some_random_key",
-    cookie_expiry_days=30
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days'],
+    config['preauthorized']
 )
 
-# --- Login ---
-name, authentication_status, username = authenticator.login("เข้าสู่ระบบ", "main")
+# --- Login interface ---
+name, auth_status, username = authenticator.login("เข้าสู่ระบบ", "main")
 
-if authentication_status is False:
+if auth_status is False:
     st.error("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")
-elif authentication_status is None:
-    st.warning("⚠️ กรุณาเข้าสู่ระบบก่อนใช้งาน")
+    st.stop()
+elif auth_status is None:
+    st.warning("⚠️ กรุณาเข้าสู่ระบบเพื่อใช้งาน")
+    st.stop()
 else:
     authenticator.logout("ออกจากระบบ", "sidebar")
     st.success(f"✅ สวัสดีคุณ {name}!")
 
-    # --- App UI ---
+    # --- App Header ---
     st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
     logo = Image.open("logo.png")
     st.image(logo, width=200)
 
-    # --- Initialize chat history ---
+    # --- Initialize chat session ---
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {"role": "system", "content": (
@@ -51,12 +51,11 @@ else:
                 "คุณควรให้คำตอบที่สุภาพ อบอุ่น เป็นกันเอง และเข้าใจง่ายสำหรับทุกคน")}
         ]
 
-    # --- Show previous messages ---
     for msg in st.session_state.messages[1:]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # --- Chat input ---
+    # --- Input box ---
     user_input = st.chat_input("พิมพ์อาการของคุณหรือสอบถามสิ่งที่ต้องการได้ที่นี่...")
 
     if user_input:
@@ -73,8 +72,6 @@ else:
         except Exception as e:
             assistant_reply = f"ขออภัย เกิดข้อผิดพลาด: {e}"
 
-        # Show assistant reply with avatar
         with st.chat_message("assistant", avatar="logo.png"):
             st.markdown(assistant_reply)
-
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
