@@ -25,7 +25,7 @@ authenticator = stauth.Authenticate(
 
 
 # --- Login interface ---
-name, auth_status, username = authenticator.login("เข้าสู่ระบบ", "main")
+name, auth_status, username = authenticator.login("เข้าสู่ระบบ", location="main")
 
 if auth_status is False:
     st.error("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")
