@@ -21,10 +21,20 @@ if text_input:
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "คุณคือผู้ช่วยแพทย์ที่ให้คำแนะนำเบื้องต้นเป็นภาษาไทย"},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=4096,
+    {
+        "role": "system",
+        "content": (
+            "คุณคือผู้ช่วยด้านสุขภาพที่พูดภาษาไทยและให้คำแนะนำเบื้องต้นเกี่ยวกับอาการเจ็บป่วยทั่วไป "
+            "คุณไม่ใช่แพทย์และจะไม่วินิจฉัยโรคหรือสั่งยา แต่สามารถแนะนำแนวทางเบื้องต้น เช่น การพักผ่อน การดื่มน้ำ หรือการพบแพทย์เมื่อจำเป็น "
+            "ให้คำตอบที่สุภาพ ชัดเจน และเข้าใจง่ายสำหรับคนทั่วไป และควรใช้ภาษาที่อบอุ่นเป็นกันเอง"
+        )
+    },
+    {
+        "role": "user",
+        "content": f"อาการของฉันคือ: {text_input}"
+    }
+   ],
+            max_tokens=4000,
             temperature=0.7,
         )
         health_advice = response.choices[0].message.content.strip()
