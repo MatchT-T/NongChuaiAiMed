@@ -1,4 +1,7 @@
 streamlit
 openai
+whisper
+gtts
 python-dotenv
+streamlit-authenticator
 
