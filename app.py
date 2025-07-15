@@ -24,7 +24,7 @@ if text_input:
                 {"role": "system", "content": "คุณคือผู้ช่วยแพทย์ที่ให้คำแนะนำเบื้องต้นเป็นภาษาไทย"},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=150,
+            max_tokens=5000,
             temperature=0.7,
         )
         health_advice = response.choices[0].message.content.strip()
