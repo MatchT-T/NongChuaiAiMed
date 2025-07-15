@@ -31,7 +31,7 @@ if text_input:
     except Exception as e:
         health_advice = f"ขออภัย เกิดข้อผิดพลาด: {e}"
 
-    st.write("**คำแนะนำ:**")
-st.success(health_advice)
+    st.markdown(f"**คำแนะนำ:** {health_advice}")
+
 
 st.info("กรุณาพิมพ์อาการของคุณ แล้วรอรับคำแนะนำเป็นข้อความ")
