@@ -11,13 +11,14 @@ load_dotenv()
 # OpenAI API Key
 openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
 
-# Load and show logo
+# Load logo
 logo = Image.open("logo.png")
-col1, col2 = st.columns([1, 5])
-with col1:
-    st.image(logo, width=250)
+
+# Center logo and title using Streamlit columns
+col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
-    st.markdown("<h1 style='margin-top: 10px;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
+    st.image(logo, width=200)
+    st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
 
 # Input symptom
 text_input = st.text_input("พิมพ์อาการของคุณ (Type your symptoms):")
