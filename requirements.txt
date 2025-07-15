@@ -1,5 +1,4 @@
 streamlit
 openai
 python-dotenv
-streamlit-authenticator
-pillow
+streamlit-authenticator>=0.2.3
