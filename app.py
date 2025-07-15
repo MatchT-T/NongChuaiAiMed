@@ -1,4 +1,5 @@
 import streamlit as st
+st.set_page_config(layout="wide")
 import openai
 import os
 from dotenv import load_dotenv
@@ -30,6 +31,7 @@ if text_input:
     except Exception as e:
         health_advice = f"ขออภัย เกิดข้อผิดพลาด: {e}"
 
-    st.markdown(f"**คำแนะนำ:** {health_advice}")
+    st.write("**คำแนะนำ:**")
+st.success(health_advice)
 
 st.info("กรุณาพิมพ์อาการของคุณ แล้วรอรับคำแนะนำเป็นข้อความ")
