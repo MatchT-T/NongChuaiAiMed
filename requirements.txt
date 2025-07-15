@@ -1,6 +1,3 @@
 streamlit
 openai
-whisper
-gtts
 python-dotenv
-streamlit-audiorecorder
