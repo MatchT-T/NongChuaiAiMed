@@ -20,9 +20,9 @@ authenticator = stauth.Authenticate(
     config['credentials'],
     config['cookie']['name'],
     config['cookie']['key'],
-    config['cookie']['expiry_days'],
-    config['preauthorized']
+    config['cookie']['expiry_days']
 )
+
 
 # --- Login interface ---
 name, auth_status, username = authenticator.login("เข้าสู่ระบบ", "main")
