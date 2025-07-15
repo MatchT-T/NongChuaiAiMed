@@ -14,13 +14,9 @@ openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets 
 # Load logo
 logo = Image.open("logo.png")
 
-# Display centered title and logo
-st.markdown("""
-    <div style='text-align: center;'>
-        <h1>น้องช่วย AI Healthcare Assistant</h1>
-        <img src='logo.png' width='200'/>
-    </div>
-""", unsafe_allow_html=True)
+# Centered title and logo
+st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
+st.image(logo, width=200, use_column_width=False)
 
 # Input symptom
 text_input = st.text_input("พิมพ์อาการของคุณ (Type your symptoms):")
@@ -59,4 +55,3 @@ if text_input:
 
 # Info footer
 st.info("กรุณาพิมพ์อาการของคุณ แล้วรอรับคำแนะนำเป็นข้อความ")
-
