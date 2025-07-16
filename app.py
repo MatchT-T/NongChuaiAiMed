@@ -1,49 +1,63 @@
 import streamlit as st
-import streamlit_authenticator as stauth
-import yaml
-from yaml.loader import SafeLoader
+from supabase_client import supabase
 from PIL import Image
 import openai
 import os
 from dotenv import load_dotenv
 
-# --- Config and API setup ---
 st.set_page_config(page_title="น้องช่วย", layout="wide")
 load_dotenv()
 openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
 
-# --- Load authenticator config from YAML ---
-with open('config.yaml') as file:
-    config = yaml.load(file, Loader=SafeLoader)
+# --- Authentication section ---
+if "auth_mode" not in st.session_state:
+    st.session_state.auth_mode = "login"
 
-authenticator = stauth.Authenticate(
-    config['credentials'],
-    config['cookie']['name'],
-    config['cookie']['key'],
-    config['cookie']['expiry_days']
-)
+def login(email, password):
+    result = supabase.auth.sign_in_with_password({"email": email, "password": password})
+    return result
 
+def register(email, password):
+    result = supabase.auth.sign_up({"email": email, "password": password})
+    return result
 
-# --- Login interface ---
-name, auth_status, username = authenticator.login("เข้าสู่ระบบ", "main")
+st.sidebar.title("🔐 ระบบผู้ใช้")
+if st.session_state.auth_mode == "login":
+    st.sidebar.subheader("เข้าสู่ระบบ")
+    email = st.sidebar.text_input("อีเมล")
+    password = st.sidebar.text_input("รหัสผ่าน", type="password")
+    if st.sidebar.button("เข้าสู่ระบบ"):
+        try:
+            login(email, password)
+            st.session_state.logged_in = True
+            st.success("✅ เข้าสู่ระบบสำเร็จ")
+        except Exception as e:
+            st.error(f"❌ เข้าสู่ระบบล้มเหลว: {e}")
 
+    st.sidebar.markdown("ยังไม่มีบัญชี? [สมัครสมาชิก](#)", unsafe_allow_html=True)
+    if st.sidebar.button("เปลี่ยนไปสมัครสมาชิก"):
+        st.session_state.auth_mode = "register"
 
-if auth_status is False:
-    st.error("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")
-    st.stop()
-elif auth_status is None:
-    st.warning("⚠️ กรุณาเข้าสู่ระบบเพื่อใช้งาน")
-    st.stop()
-else:
-    authenticator.logout("ออกจากระบบ", "sidebar")
-    st.success(f"✅ สวัสดีคุณ {name}!")
+elif st.session_state.auth_mode == "register":
+    st.sidebar.subheader("สมัครสมาชิก")
+    email = st.sidebar.text_input("อีเมลใหม่")
+    password = st.sidebar.text_input("รหัสผ่านใหม่", type="password")
+    if st.sidebar.button("สมัครสมาชิก"):
+        try:
+            register(email, password)
+            st.success("✅ สมัครสมาชิกสำเร็จ กรุณากลับไปเข้าสู่ระบบ")
+            st.session_state.auth_mode = "login"
+        except Exception as e:
+            st.error(f"❌ สมัครไม่สำเร็จ: {e}")
+    if st.sidebar.button("กลับไปเข้าสู่ระบบ"):
+        st.session_state.auth_mode = "login"
 
-    # --- App Header ---
+# --- If logged in, show chat ---
+if st.session_state.get("logged_in"):
     st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
     logo = Image.open("logo.png")
     st.image(logo, width=200)
 
-    # --- Initialize chat session ---
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {"role": "system", "content": (
@@ -56,7 +70,6 @@ else:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # --- Input box ---
     user_input = st.chat_input("พิมพ์อาการของคุณหรือสอบถามสิ่งที่ต้องการได้ที่นี่...")
 
     if user_input:
