@@ -27,8 +27,9 @@ st.title("🔐 เข้าสู่ระบบ / สมัครสมาช�
 if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "login"
 
-# --- Login / Register UI ---
+# --- Show login/register only if not logged in ---
 if not st.session_state.get("logged_in"):
+
     menu = st.radio("เลือกเมนู", ["เข้าสู่ระบบ", "สมัครสมาชิก"])
     email = st.text_input("อีเมล")
     password = st.text_input("รหัสผ่าน", type="password")
@@ -49,10 +50,12 @@ if not st.session_state.get("logged_in"):
                     st.session_state.user = user.user
                     st.session_state.logged_in = True
                     st.success("✅ เข้าสู่ระบบสำเร็จ")
+                    st.experimental_rerun()
                 else:
                     st.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
             except Exception as e:
                 st.error(f"เข้าสู่ระบบล้มเหลว: {e}")
+
 
 # --- Chat UI ---
 if st.session_state.get("logged_in"):
