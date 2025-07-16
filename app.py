@@ -5,7 +5,7 @@ import openai
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-import httpx
+import httpx  # Needed to use custom headers for authenticated requests
 
 # --- Page Config ---
 st.set_page_config(page_title="น้องช่วย", layout="wide")
@@ -20,7 +20,7 @@ openai.api_key = OPENAI_API_KEY
 # --- Connect to Supabase ---
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# --- Auth UI ---
+# --- UI Setup ---
 st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
 
 if "auth_mode" not in st.session_state:
@@ -30,6 +30,7 @@ menu = st.radio("เลือกเมนู", ["เข้าสู่ระบ�
 email = st.text_input("อีเมล")
 password = st.text_input("รหัสผ่าน", type="password")
 
+# --- Registration ---
 if menu == "สมัครสมาชิก":
     if st.button("สมัครสมาชิก"):
         try:
@@ -38,13 +39,14 @@ if menu == "สมัครสมาชิก":
         except Exception as e:
             st.error(f"เกิดข้อผิดพลาด: {e}")
 
+# --- Login ---
 elif menu == "เข้าสู่ระบบ":
     if st.button("เข้าสู่ระบบ"):
         try:
             user = supabase.auth.sign_in_with_password({"email": email, "password": password})
             if user.user:
                 st.session_state.user = user.user
-                st.session_state.token = user.session.access_token
+                st.session_state.access_token = user.session.access_token
                 st.session_state.logged_in = True
                 st.success("✅ เข้าสู่ระบบสำเร็จ")
             else:
@@ -52,35 +54,38 @@ elif menu == "เข้าสู่ระบบ":
         except Exception as e:
             st.error(f"เข้าสู่ระบบล้มเหลว: {e}")
 
-# --- Chat UI ---
+# --- Main App Logic ---
 if st.session_state.get("logged_in"):
     user_id = st.session_state.user.id
-    token = st.session_state.token
+    access_token = st.session_state.access_token
+
     st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
     logo = Image.open("logo.png")
     st.image(logo, width=200)
 
-    # --- Load chat history ---
+    # --- Load previous history ---
     if "messages" not in st.session_state:
         try:
-            data = supabase.table("symptom_history") \
+            response = supabase.table("symptom_history") \
                 .select("message, reply") \
                 .eq("user_id", user_id) \
                 .order("timestamp") \
-                .execute()
+                .execute(headers={"Authorization": f"Bearer {access_token}"})
+            
             st.session_state.messages = [{"role": "system", "content": "คุณคือน้องช่วย..."}]
-            for row in data.data:
+            for row in response.data:
                 st.session_state.messages.append({"role": "user", "content": row["message"]})
                 st.session_state.messages.append({"role": "assistant", "content": row["reply"]})
         except Exception as e:
             st.session_state.messages = [{"role": "system", "content": "คุณคือน้องช่วย..."}]
             st.error(f"โหลดประวัติไม่สำเร็จ: {e}")
 
+    # --- Display chat history ---
     for msg in st.session_state.messages[1:]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # --- Input & Response ---
+    # --- Chat input ---
     user_input = st.chat_input("พิมพ์อาการของคุณหรือสอบถามสิ่งที่ต้องการได้ที่นี่...")
 
     if user_input:
@@ -101,32 +106,12 @@ if st.session_state.get("logged_in"):
             st.markdown(assistant_reply)
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
 
-        # --- Save to Supabase with Auth Header ---
-user_id = st.session_state.user.id
-insert_data = {
-    "user_id": user_id,
-    "message": user_input,
-    "reply": assistant_reply
-}
-
-try:
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "apikey": SUPABASE_KEY,
-        "Content-Type": "application/json"
-    }
-
-    response = httpx.post(
-        f"{SUPABASE_URL}/rest/v1/symptom_history",
-        json=insert_data,
-        headers=headers
-    )
-
-    if response.status_code not in [200, 201]:
-        raise Exception(f"{response.status_code}: {response.text}")
-
-except Exception as e:
-    st.error(f"บันทึกประวัติล้มเหลว: {e}")
-
-
-
+        # --- Save chat to Supabase ---
+        try:
+            supabase.table("symptom_history").insert({
+                "user_id": user_id,
+                "message": user_input,
+                "reply": assistant_reply
+            }).execute(headers={"Authorization": f"Bearer {access_token}"})
+        except Exception as e:
+            st.error(f"บันทึกประวัติล้มเหลว: {e}")
