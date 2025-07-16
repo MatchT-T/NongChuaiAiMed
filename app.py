@@ -1,72 +1,58 @@
 import streamlit as st
+from supabase import create_client
 from PIL import Image
 import openai
 import os
 from dotenv import load_dotenv
-from supabase import create_client
-from datetime import datetime
 
-# --- Setup ---
+# --- CONFIG ---
 st.set_page_config(page_title="น้องช่วย", layout="wide")
 load_dotenv()
 
-# Supabase credentials
+# --- SUPABASE SETUP ---
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
+# --- OPENAI SETUP ---
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# --- Login/Register UI ---
-if "auth_mode" not in st.session_state:
-    st.session_state.auth_mode = "login"
+# --- AUTH ---
+st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
+if "user" not in st.session_state:
+    mode = st.radio("เลือกเมนู", ["เข้าสู่ระบบ", "สมัครสมาชิก"])
 
-def login(email, password):
-    return supabase.auth.sign_in_with_password({"email": email, "password": password})
+    email = st.text_input("อีเมล")
+    password = st.text_input("รหัสผ่าน", type="password")
 
-def register(email, password):
-    return supabase.auth.sign_up({"email": email, "password": password})
+    if mode == "สมัครสมาชิก":
+        if st.button("สมัครสมาชิก"):
+            try:
+                supabase.auth.sign_up({"email": email, "password": password})
+                st.success("✅ สมัครแล้ว กรุณาเข้าสู่ระบบ")
+            except Exception as e:
+                st.error(f"❌ สมัครไม่สำเร็จ: {e}")
+    else:
+        if st.button("เข้าสู่ระบบ"):
+            try:
+                user = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                st.session_state.user = user
+                st.rerun()
+            except Exception as e:
+                st.error("❌ เข้าสู่ระบบไม่สำเร็จ")
 
-st.sidebar.title("🔐 ระบบผู้ใช้")
+# --- CHATBOT ---
+if "user" in st.session_state:
+    st.sidebar.success(f"ยินดีต้อนรับ {st.session_state.user.user.email}")
+    if st.sidebar.button("ออกจากระบบ"):
+        supabase.auth.sign_out()
+        del st.session_state.user
+        st.rerun()
 
-if st.session_state.auth_mode == "login":
-    st.sidebar.subheader("เข้าสู่ระบบ")
-    email = st.sidebar.text_input("อีเมล")
-    password = st.sidebar.text_input("รหัสผ่าน", type="password")
-    if st.sidebar.button("เข้าสู่ระบบ"):
-        try:
-            user = login(email, password)
-            st.session_state.logged_in = True
-            st.session_state.user = user.user
-            st.rerun()
-        except Exception as e:
-            st.error(f"❌ เข้าสู่ระบบล้มเหลว: {e}")
-    if st.sidebar.button("สมัครสมาชิก"):
-        st.session_state.auth_mode = "register"
-
-elif st.session_state.auth_mode == "register":
-    st.sidebar.subheader("สมัครสมาชิก")
-    email = st.sidebar.text_input("อีเมลใหม่")
-    password = st.sidebar.text_input("รหัสผ่านใหม่", type="password")
-    if st.sidebar.button("สมัครสมาชิก"):
-        try:
-            register(email, password)
-            st.success("✅ สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ")
-            st.session_state.auth_mode = "login"
-        except Exception as e:
-            st.error(f"❌ สมัครไม่สำเร็จ: {e}")
-    if st.sidebar.button("กลับไปเข้าสู่ระบบ"):
-        st.session_state.auth_mode = "login"
-
-# --- If logged in ---
-if st.session_state.get("logged_in"):
-    user_id = st.session_state.user.id
-    st.success(f"✅ สวัสดีคุณ {st.session_state.user.email}")
-
-    # --- Chat UI ---
     st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
-    logo = Image.open("logo.png")
-    st.image(logo, width=200)
+    st.image("logo.png", width=200)
+
+    user_id = st.session_state.user.user.id
 
     # Load chat history from Supabase
     if "messages" not in st.session_state:
@@ -76,19 +62,20 @@ if st.session_state.get("logged_in"):
                 "แต่สามารถให้คำแนะนำเบื้องต้น เช่น การพักผ่อน การดื่มน้ำ หรือการไปพบแพทย์ "
                 "คุณควรให้คำตอบที่สุภาพ อบอุ่น เป็นกันเอง และเข้าใจง่ายสำหรับทุกคน")}
         ]
-        # Load previous history from Supabase
-        res = supabase.table("symptom_history").select("*").eq("user_id", user_id).order("created_at", desc=False).execute()
-        for row in res.data:
-            st.session_state.messages.append({"role": "user", "content": row["user_input"]})
-            st.session_state.messages.append({"role": "assistant", "content": row["bot_response"]})
 
-    # Display chat messages
+        # Fetch past messages
+        data = supabase.table("symptom_history").select("*").eq("user_id", user_id).order("timestamp").execute()
+        for row in data.data:
+            st.session_state.messages.append({"role": "user", "content": row["question"]})
+            st.session_state.messages.append({"role": "assistant", "content": row["response"]})
+
+    # Show history
     for msg in st.session_state.messages[1:]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # Chat input
-    user_input = st.chat_input("พิมพ์อาการของคุณหรือสอบถามสิ่งที่ต้องการได้ที่นี่...")
+    # Input
+    user_input = st.chat_input("พิมพ์อาการของคุณ...")
     if user_input:
         st.chat_message("user").markdown(user_input)
         st.session_state.messages.append({"role": "user", "content": user_input})
@@ -99,18 +86,17 @@ if st.session_state.get("logged_in"):
                 messages=st.session_state.messages,
                 temperature=0.7
             )
-            assistant_reply = response.choices[0].message.content.strip()
+            reply = response.choices[0].message.content.strip()
         except Exception as e:
-            assistant_reply = f"ขออภัย เกิดข้อผิดพลาด: {e}"
+            reply = f"เกิดข้อผิดพลาด: {e}"
 
-        with st.chat_message("assistant", avatar="logo.png"):
-            st.markdown(assistant_reply)
-        st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
+        with st.chat_message("assistant"):
+            st.markdown(reply)
+        st.session_state.messages.append({"role": "assistant", "content": reply})
 
         # Save to Supabase
         supabase.table("symptom_history").insert({
             "user_id": user_id,
-            "user_input": user_input,
-            "bot_response": assistant_reply,
-            "created_at": datetime.utcnow().isoformat()
+            "question": user_input,
+            "response": reply
         }).execute()
