@@ -106,12 +106,14 @@ if st.session_state.get("logged_in"):
             st.markdown(assistant_reply)
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
 
-        # --- Save chat to Supabase ---
-        try:
-            supabase.table("symptom_history").insert({
-                "user_id": user_id,
-                "message": user_input,
-                "reply": assistant_reply
-            }).execute(headers={"Authorization": f"Bearer {access_token}"})
-        except Exception as e:
-            st.error(f"บันทึกประวัติล้มเหลว: {e}")
+       # --- Save to Supabase ---
+try:
+    access_token = st.session_state.user.access_token
+    supabase.table("symptom_history").insert({
+        "user_id": st.session_state.user.id,
+        "message": user_input,
+        "reply": assistant_reply
+    }).execute(headers={"Authorization": f"Bearer {access_token}"})
+except Exception as e:
+    st.error(f"บันทึกประวัติล้มเหลว: {e}")
+
