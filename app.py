@@ -100,18 +100,12 @@ if st.session_state.get("logged_in"):
             st.markdown(assistant_reply)
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
 
-        # --- Save to Supabase with Auth Header ---
-        from supabase._sync.request_builder import SyncRequestBuilder
-
-        insert_data = {
-            "user_id": user_id,
-            "message": user_input,
-            "reply": assistant_reply
-        }
-
-        try:
-            SyncRequestBuilder(
-                supabase.table("symptom_history").insert(insert_data)
-            ).execute(headers={"Authorization": f"Bearer {token}"})
-        except Exception as e:
-            st.error(f"บันทึกประวัติล้มเหลว: {e}")
+       # --- Save to Supabase (authenticated user already carries token internally)
+try:
+    supabase.table("symptom_history").insert({
+        "user_id": st.session_state.user.id,
+        "message": user_input,
+        "reply": assistant_reply
+    }).execute()
+except Exception as e:
+    st.error(f"บันทึกประวัติล้มเหลว: {e}")
