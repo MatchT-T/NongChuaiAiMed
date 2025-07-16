@@ -50,7 +50,7 @@ if not st.session_state.get("logged_in"):
                     st.session_state.user = user.user
                     st.session_state.logged_in = True
                     st.success("✅ เข้าสู่ระบบสำเร็จ")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
             except Exception as e:
