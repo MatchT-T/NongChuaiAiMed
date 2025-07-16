@@ -82,30 +82,28 @@ if st.session_state.get("logged_in"):
     # --- Input & Response ---
     user_input = st.chat_input("พิมพ์อาการของคุณหรือสอบถามสิ่งที่ต้องการได้ที่นี่...")
 
-    if user_input:
-        st.chat_message("user").markdown(user_input)
-        st.session_state.messages.append({"role": "user", "content": user_input})
+if user_input:
+    st.chat_message("user").markdown(user_input)
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
-        try:
-            response = openai.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=st.session_state.messages,
-                temperature=0.7
-            )
-            assistant_reply = response.choices[0].message.content.strip()
-        except Exception as e:
-            assistant_reply = f"ขออภัย เกิดข้อผิดพลาด: {e}"
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=st.session_state.messages,
+            temperature=0.7
+        )
+        assistant_reply = response.choices[0].message.content.strip()
 
         with st.chat_message("assistant", avatar="logo.png"):
             st.markdown(assistant_reply)
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
 
-       # --- Save to Supabase (authenticated user already carries token internally)
-try:
-    supabase.table("symptom_history").insert({
-        "user_id": st.session_state.user.id,
-        "message": user_input,
-        "reply": assistant_reply
-    }).execute()
-except Exception as e:
-    st.error(f"บันทึกประวัติล้มเหลว: {e}")
+        # ✅ Save to Supabase (now assistant_reply is defined)
+        supabase.table("symptom_history").insert({
+            "user_id": st.session_state.user.id,
+            "message": user_input,
+            "reply": assistant_reply
+        }).execute()
+
+    except Exception as e:
+        st.error(f"ขออภัย เกิดข้อผิดพลาด: {e}")
