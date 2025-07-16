@@ -63,11 +63,17 @@ if st.session_state.get("logged_in"):
     user_id = st.session_state.user.id
 
     # --- Header ---
-    st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.image("logo.png", width=200)
-        if st.button("🚪 ออกจากระบบ"):
+    # --- Title and Centered Logo ---
+st.markdown("""
+    <div style='text-align: center;'>
+        <h1>น้องช่วย AI Healthcare Assistant</h1>
+        <img src='https://raw.githubusercontent.com/yourusername/yourrepo/main/logo.png' width='180'>
+        <br>
+        <form action='#'>
+            <button style='margin-top: 10px; padding: 0.5rem 1rem; font-size: 1rem;'>🚪 ออกจากระบบ</button>
+        </form>
+    </div>
+""", unsafe_allow_html=True)
             st.session_state.clear()
             st.rerun()
 
