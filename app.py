@@ -62,14 +62,17 @@ if not st.session_state.get("logged_in"):
 if st.session_state.get("logged_in"):
     user_id = st.session_state.user.id
 
-    # --- Header ---
-    st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
+    # --- Header: Title and Centered Logo ---
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image("logo.png", width=200)
+        st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
+        st.image("logo.png", width=180)
+        st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
         if st.button("🚪 ออกจากระบบ"):
             st.session_state.clear()
             st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+
 
     # --- Load chat history ---
     if "messages" not in st.session_state:
