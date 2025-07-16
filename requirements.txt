@@ -4,4 +4,4 @@ python-dotenv
 streamlit-authenticator==0.2.3
 supabase==2.0.4
 httpx
-Pillow
+
