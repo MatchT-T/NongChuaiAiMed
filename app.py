@@ -60,8 +60,8 @@ elif st.session_state.auth_mode == "signup":
         except Exception as e:
             st.error(f"เกิดข้อผิดพลาด: {e}")
     if st.button("มีบัญชีอยู่แล้ว? 👉 เข้าสู่ระบบ"):
-    st.session_state.auth_mode = "login"
-    st.rerun()
+       st.session_state.auth_mode = "login"
+       st.rerun()
 
 
 
