@@ -21,9 +21,6 @@ openai.api_key = OPENAI_API_KEY
 supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
 
 if not st.session_state.get("logged_in"):
-    # --- App Title ---
-    st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
-
     # --- Auth Toggle ---
 if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "login"  # or "signup"
