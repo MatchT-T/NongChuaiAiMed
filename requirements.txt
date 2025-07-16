@@ -1,6 +1,6 @@
 streamlit
 openai
 python-dotenv
-supabase==2.0.4
-httpx
 pillow
+httpx
+supabase-py==2.0.4
