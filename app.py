@@ -102,6 +102,7 @@ if st.session_state.get("logged_in"):
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
 
         # --- Save to Supabase with Auth Header ---
+user_id = st.session_state.user.id
 insert_data = {
     "user_id": user_id,
     "message": user_input,
