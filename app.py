@@ -20,9 +20,14 @@ openai.api_key = OPENAI_API_KEY
 # --- Connect to Supabase ---
 supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
 
+# --- Initialize auth mode ---
+if "auth_mode" not in st.session_state:
+    st.session_state.auth_mode = "login"
+
+# --- Login / Signup UI ---
 if not st.session_state.get("logged_in"):
-    # --- UI Header ---
     st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
+
     email = st.text_input("อีเมล")
     password = st.text_input("รหัสผ่าน", type="password")
 
@@ -39,7 +44,8 @@ if not st.session_state.get("logged_in"):
                     st.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
             except Exception as e:
                 st.error(f"เข้าสู่ระบบล้มเหลว: {e}")
-        
+
+        # Switch to signup
         if st.button("ยังไม่มีบัญชี? 👉 สมัครสมาชิก"):
             st.session_state.auth_mode = "signup"
             st.rerun()
@@ -51,13 +57,11 @@ if not st.session_state.get("logged_in"):
                 st.success("✅ สมัครสำเร็จ! ไปยืนยันอีเมล แล้วกลับมาเข้าสู่ระบบได้เลยค่ะ")
             except Exception as e:
                 st.error(f"เกิดข้อผิดพลาด: {e}")
-        
+
+        # Switch to login
         if st.button("มีบัญชีอยู่แล้ว? 👉 เข้าสู่ระบบ"):
             st.session_state.auth_mode = "login"
             st.rerun()
-
-
-
 
 # --- Chat UI ---
 if st.session_state.get("logged_in"):
