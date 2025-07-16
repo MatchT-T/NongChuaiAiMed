@@ -63,14 +63,15 @@ if st.session_state.get("logged_in"):
     user_id = st.session_state.user.id
 
     # Load and center the logo
-logo = Image.open("logo.png")
-col1, col2, col3 = st.columns([1, 2, 1])  # Middle column is wider
-with col2:
-    st.image(logo, width=200)
-    st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
+    logo = Image.open("logo.png")
+    col1, col2, col3 = st.columns([1, 2, 1])  # Middle column is wider
+    with col2:
+        st.image(logo, width=200)
+        st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
         if st.button("🚪 ออกจากระบบ"):
             st.session_state.clear()
             st.rerun()
+
 
     # --- Load chat history ---
     if "messages" not in st.session_state:
