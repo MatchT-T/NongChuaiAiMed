@@ -21,48 +21,41 @@ openai.api_key = OPENAI_API_KEY
 supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
 
 if not st.session_state.get("logged_in"):
-    # --- App Title ---
+    # --- UI Header ---
     st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
+    email = st.text_input("อีเมล")
+    password = st.text_input("รหัสผ่าน", type="password")
 
-    # --- Auth Toggle ---
-if "auth_mode" not in st.session_state:
-    st.session_state.auth_mode = "login"  # or "signup"
+    if st.session_state.auth_mode == "login":
+        if st.button("เข้าสู่ระบบ"):
+            try:
+                user = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                if user.user:
+                    st.session_state.user = user.user
+                    st.session_state.logged_in = True
+                    st.success("✅ เข้าสู่ระบบสำเร็จ")
+                    st.rerun()
+                else:
+                    st.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+            except Exception as e:
+                st.error(f"เข้าสู่ระบบล้มเหลว: {e}")
+        
+        if st.button("ยังไม่มีบัญชี? 👉 สมัครสมาชิก"):
+            st.session_state.auth_mode = "signup"
+            st.rerun()
 
-# --- UI Header ---
-email = st.text_input("อีเมล")
-password = st.text_input("รหัสผ่าน", type="password")
+    elif st.session_state.auth_mode == "signup":
+        if st.button("สมัครสมาชิก"):
+            try:
+                user = supabase.auth.sign_up({"email": email, "password": password})
+                st.success("✅ สมัครสำเร็จ! ไปยืนยันอีเมล แล้วกลับมาเข้าสู่ระบบได้เลยค่ะ")
+            except Exception as e:
+                st.error(f"เกิดข้อผิดพลาด: {e}")
+        
+        if st.button("มีบัญชีอยู่แล้ว? 👉 เข้าสู่ระบบ"):
+            st.session_state.auth_mode = "login"
+            st.rerun()
 
-if st.session_state.auth_mode == "login":
-    if st.button("เข้าสู่ระบบ"):
-        try:
-            user = supabase.auth.sign_in_with_password({"email": email, "password": password})
-            if user.user:
-                st.session_state.user = user.user
-                st.session_state.logged_in = True
-                st.success("✅ เข้าสู่ระบบสำเร็จ")
-                st.rerun()
-            else:
-                st.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
-        except Exception as e:
-            st.error(f"เข้าสู่ระบบล้มเหลว: {e}")
-
-    # 👇 same indentation level as `if st.button("เข้าสู่ระบบ")`
-    if st.button("ยังไม่มีบัญชี? 👉 สมัครสมาชิก"):
-        st.session_state.auth_mode = "signup"
-        st.rerun()
-
-
-elif st.session_state.auth_mode == "signup":
-    if st.button("สมัครสมาชิก"):
-        try:
-            user = supabase.auth.sign_up({"email": email, "password": password})
-            st.success("✅ สมัครสำเร็จ! ไปยืนยันอีเมล แล้วกลับมาเข้าสู่ระบบได้เลยค่ะ")
-        except Exception as e:
-            st.error(f"เกิดข้อผิดพลาด: {e}")
-    
-    if st.button("มีบัญชีอยู่แล้ว? 👉 เข้าสู่ระบบ"):
-        st.session_state.auth_mode = "login"
-        st.rerun()
 
 
 
