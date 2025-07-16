@@ -45,9 +45,12 @@ if st.session_state.auth_mode == "login":
                 st.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
         except Exception as e:
             st.error(f"เข้าสู่ระบบล้มเหลว: {e}")
-   if st.button("ยังไม่มีบัญชี? 👉 สมัครสมาชิก"):
-    st.session_state.auth_mode = "signup"
-    st.rerun()
+
+    # 👇 same indentation level as `if st.button("เข้าสู่ระบบ")`
+    if st.button("ยังไม่มีบัญชี? 👉 สมัครสมาชิก"):
+        st.session_state.auth_mode = "signup"
+        st.rerun()
+
 
 elif st.session_state.auth_mode == "signup":
     if st.button("สมัครสมาชิก"):
