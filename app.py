@@ -101,19 +101,32 @@ if st.session_state.get("logged_in"):
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
 
         # --- Save to Supabase with Auth Header ---
-        from supabase._sync.request_builder import SyncRequestBuilder
+       import httpx
 
-        insert_data = {
-            "user_id": user_id,
-            "message": user_input,
-            "reply": assistant_reply
-        }
+insert_data = {
+    "user_id": user_id,
+    "message": user_input,
+    "reply": assistant_reply
+}
 
-        try:
-            SyncRequestBuilder(
-                supabase.table("symptom_history").insert(insert_data)
-            ).execute(headers={"Authorization": f"Bearer {token}"})
-        except Exception as e:
-            st.error(f"บันทึกประวัติล้มเหลว: {e}")
+try:
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "apikey": SUPABASE_KEY,
+        "Content-Type": "application/json"
+    }
+
+    response = httpx.post(
+        f"{SUPABASE_URL}/rest/v1/symptom_history",
+        json=insert_data,
+        headers=headers
+    )
+
+    if response.status_code not in [200, 201]:
+        raise Exception(f"{response.status_code}: {response.text}")
+
+except Exception as e:
+    st.error(f"บันทึกประวัติล้มเหลว: {e}")
+
 
 
