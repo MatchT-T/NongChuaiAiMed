@@ -29,8 +29,6 @@ if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "login"  # or "signup"
 
 # --- UI Header ---
-st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
-
 email = st.text_input("อีเมล")
 password = st.text_input("รหัสผ่าน", type="password")
 
