@@ -19,13 +19,18 @@ openai.api_key = OPENAI_API_KEY
 
 # --- Connect to Supabase ---
 supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
-st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
+
 if not st.session_state.get("logged_in"):
+    # --- App Title ---
+    st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
+
     # --- Auth Toggle ---
 if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "login"  # or "signup"
 
 # --- UI Header ---
+st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
+
 email = st.text_input("อีเมล")
 password = st.text_input("รหัสผ่าน", type="password")
 
