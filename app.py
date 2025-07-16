@@ -12,7 +12,6 @@ st.set_page_config(page_title="น้องช่วย", layout="wide")
 # --- Load Environment Variables ---
 load_dotenv()
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
-SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 SUPABASE_SECRET_KEY = st.secrets["SUPABASE_SECRET_KEY"]
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 openai.api_key = OPENAI_API_KEY
@@ -20,14 +19,12 @@ openai.api_key = OPENAI_API_KEY
 # --- Connect to Supabase ---
 supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
 
-# --- Initialize auth mode ---
+# --- Auth state ---
 if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "login"
 
-# --- Login / Signup UI ---
 if not st.session_state.get("logged_in"):
     st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
-
     email = st.text_input("อีเมล")
     password = st.text_input("รหัสผ่าน", type="password")
 
@@ -45,7 +42,6 @@ if not st.session_state.get("logged_in"):
             except Exception as e:
                 st.error(f"เข้าสู่ระบบล้มเหลว: {e}")
 
-        # Switch to signup
         if st.button("ยังไม่มีบัญชี? 👉 สมัครสมาชิก"):
             st.session_state.auth_mode = "signup"
             st.rerun()
@@ -58,7 +54,6 @@ if not st.session_state.get("logged_in"):
             except Exception as e:
                 st.error(f"เกิดข้อผิดพลาด: {e}")
 
-        # Switch to login
         if st.button("มีบัญชีอยู่แล้ว? 👉 เข้าสู่ระบบ"):
             st.session_state.auth_mode = "login"
             st.rerun()
@@ -66,19 +61,17 @@ if not st.session_state.get("logged_in"):
 # --- Chat UI ---
 if st.session_state.get("logged_in"):
     user_id = st.session_state.user.id
+
+    # --- Header ---
     st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
-    # Load and center the logo
-logo = Image.open("logo.png")
-col1, col2, col3 = st.columns([1, 2, 1])  # Middle column is wider
-with col2:
-    st.image(logo, width=200)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image("logo.png", width=200)
+        if st.button("🚪 ออกจากระบบ"):
+            st.session_state.clear()
+            st.rerun()
 
-    
-    if st.button("🚪 ออกจากระบบ"):
-        st.session_state.clear()
-        st.rerun()
-
-    # --- Load chat history from Supabase ---
+    # --- Load chat history ---
     if "messages" not in st.session_state:
         try:
             response = supabase.table("symptom_history").select("message, reply").eq("user_id", user_id).order("timestamp").execute()
@@ -90,7 +83,7 @@ with col2:
             st.session_state.messages = [{"role": "system", "content": "คุณคือน้องช่วย..."}]
             st.error(f"ไม่สามารถโหลดประวัติได้: {e}")
 
-    # --- Display messages ---
+    # --- Display chat ---
     for msg in st.session_state.messages[1:]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -116,12 +109,12 @@ with col2:
             st.markdown(assistant_reply)
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
 
-        # --- Save to Supabase ---
         try:
             supabase.table("symptom_history").insert({
-    "user_id": st.session_state.user.id,
-    "message": user_input,
-    "reply": assistant_reply
-     }).execute()
+                "user_id": user_id,
+                "message": user_input,
+                "reply": assistant_reply
+            }).execute()
         except Exception as e:
             st.error(f"บันทึกประวัติล้มเหลว: {e}")
+
