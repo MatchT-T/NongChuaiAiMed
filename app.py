@@ -28,30 +28,31 @@ if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "login"
 
 # --- Login / Register UI ---
-menu = st.radio("เลือกเมนู", ["เข้าสู่ระบบ", "สมัครสมาชิก"])
-email = st.text_input("อีเมล")
-password = st.text_input("รหัสผ่าน", type="password")
+if not st.session_state.get("logged_in"):
+    menu = st.radio("เลือกเมนู", ["เข้าสู่ระบบ", "สมัครสมาชิก"])
+    email = st.text_input("อีเมล")
+    password = st.text_input("รหัสผ่าน", type="password")
 
-if menu == "สมัครสมาชิก":
-    if st.button("สมัครสมาชิก"):
-        try:
-            user = supabase.auth.sign_up({"email": email, "password": password})
-            st.success("✅ สมัครสำเร็จ! ไปยืนยันอีเมล แล้วกลับมาเข้าสู่ระบบได้เลยค่ะ")
-        except Exception as e:
-            st.error(f"เกิดข้อผิดพลาด: {e}")
+    if menu == "สมัครสมาชิก":
+        if st.button("สมัครสมาชิก"):
+            try:
+                user = supabase.auth.sign_up({"email": email, "password": password})
+                st.success("✅ สมัครสำเร็จ! ไปยืนยันอีเมล แล้วกลับมาเข้าสู่ระบบได้เลยค่ะ")
+            except Exception as e:
+                st.error(f"เกิดข้อผิดพลาด: {e}")
 
-elif menu == "เข้าสู่ระบบ":
-    if st.button("เข้าสู่ระบบ"):
-        try:
-            user = supabase.auth.sign_in_with_password({"email": email, "password": password})
-            if user.user:
-                st.session_state.user = user.user
-                st.session_state.logged_in = True
-                st.success("✅ เข้าสู่ระบบสำเร็จ")
-            else:
-                st.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
-        except Exception as e:
-            st.error(f"เข้าสู่ระบบล้มเหลว: {e}")
+    elif menu == "เข้าสู่ระบบ":
+        if st.button("เข้าสู่ระบบ"):
+            try:
+                user = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                if user.user:
+                    st.session_state.user = user.user
+                    st.session_state.logged_in = True
+                    st.success("✅ เข้าสู่ระบบสำเร็จ")
+                else:
+                    st.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+            except Exception as e:
+                st.error(f"เข้าสู่ระบบล้มเหลว: {e}")
 
 # --- Chat UI ---
 if st.session_state.get("logged_in"):
