@@ -62,21 +62,23 @@ if not st.session_state.get("logged_in"):
 if st.session_state.get("logged_in"):
     user_id = st.session_state.user.id
 
-    # --- Centered Title ---
-   if st.session_state.get("logged_in"):
-    user_id = st.session_state.user.id
+    # --- Header ---
+    st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
 
-    # --- Centered Title and Logo using Columns ---
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # Center logo and logout button using HTML
+    st.markdown("""
+        <div style='text-align: center; margin-top: 1em; margin-bottom: 1em;'>
+            <img src='https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/logo.png' width='120'/>
+            <br>
+            <button onclick="fetch('/_stcore/logout', {method: 'POST'}).then(() => location.reload())"
+                style='margin-top:10px; padding:8px 16px; font-size:14px;'>🚪 ออกจากระบบ</button>
+        </div>
+    """, unsafe_allow_html=True)
 
-    with col2:
-        st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
-        st.image("logo.png", width=200)
-
-        # Proper working logout button
-        if st.button("🚪 ออกจากระบบ"):
-            st.session_state.clear()
-            st.rerun()
+    # Optional backup logout (Streamlit native button)
+    if st.button("🚪 ออกจากระบบ"):
+        st.session_state.clear()
+        st.rerun()
 
     # --- Load chat history ---
     if "messages" not in st.session_state:
