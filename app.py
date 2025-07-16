@@ -5,6 +5,7 @@ import openai
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+import httpx
 
 # --- Page Config ---
 st.set_page_config(page_title="น้องช่วย", layout="wide")
@@ -101,8 +102,6 @@ if st.session_state.get("logged_in"):
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
 
         # --- Save to Supabase with Auth Header ---
-       import httpx
-
 insert_data = {
     "user_id": user_id,
     "message": user_input,
