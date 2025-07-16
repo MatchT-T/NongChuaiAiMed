@@ -1,58 +1,58 @@
 import streamlit as st
-from supabase_client import supabase
 from PIL import Image
 import openai
 import os
 from dotenv import load_dotenv
+from supabase_client import supabase, sign_up, sign_in  # you already have this file
+from datetime import datetime
 
+# --- App Config ---
 st.set_page_config(page_title="น้องช่วย", layout="wide")
 load_dotenv()
 openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
 
-# --- Authentication section ---
+# --- Sidebar Authentication ---
+st.sidebar.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
+
 if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "login"
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-def login(email, password):
-    result = supabase.auth.sign_in_with_password({"email": email, "password": password})
-    return result
-
-def register(email, password):
-    result = supabase.auth.sign_up({"email": email, "password": password})
-    return result
-
-st.sidebar.title("🔐 ระบบผู้ใช้")
 if st.session_state.auth_mode == "login":
     st.sidebar.subheader("เข้าสู่ระบบ")
-    email = st.sidebar.text_input("อีเมล")
-    password = st.sidebar.text_input("รหัสผ่าน", type="password")
+    email = st.sidebar.text_input("อีเมล", key="login_email")
+    password = st.sidebar.text_input("รหัสผ่าน", type="password", key="login_password")
     if st.sidebar.button("เข้าสู่ระบบ"):
         try:
-            login(email, password)
-            st.session_state.logged_in = True
-            st.success("✅ เข้าสู่ระบบสำเร็จ")
+            result = sign_in(email, password)
+            if result.user:
+                st.session_state.logged_in = True
+                st.session_state.user_email = email
+                st.success("✅ เข้าสู่ระบบสำเร็จ")
+            else:
+                st.error("❌ อีเมลหรือรหัสผ่านไม่ถูกต้อง")
         except Exception as e:
-            st.error(f"❌ เข้าสู่ระบบล้มเหลว: {e}")
-
-    st.sidebar.markdown("ยังไม่มีบัญชี? [สมัครสมาชิก](#)", unsafe_allow_html=True)
+            st.error(f"เกิดข้อผิดพลาด: {e}")
+    st.sidebar.markdown("ยังไม่มีบัญชี? 👉 [สมัครสมาชิก](#)", unsafe_allow_html=True)
     if st.sidebar.button("เปลี่ยนไปสมัครสมาชิก"):
         st.session_state.auth_mode = "register"
 
 elif st.session_state.auth_mode == "register":
     st.sidebar.subheader("สมัครสมาชิก")
-    email = st.sidebar.text_input("อีเมลใหม่")
-    password = st.sidebar.text_input("รหัสผ่านใหม่", type="password")
+    email = st.sidebar.text_input("อีเมลใหม่", key="signup_email")
+    password = st.sidebar.text_input("รหัสผ่านใหม่", type="password", key="signup_password")
     if st.sidebar.button("สมัครสมาชิก"):
         try:
-            register(email, password)
-            st.success("✅ สมัครสมาชิกสำเร็จ กรุณากลับไปเข้าสู่ระบบ")
+            result = sign_up(email, password)
+            st.success("✅ สมัครสำเร็จ! กรุณาเข้าสู่ระบบ")
             st.session_state.auth_mode = "login"
         except Exception as e:
-            st.error(f"❌ สมัครไม่สำเร็จ: {e}")
+            st.error(f"สมัครไม่สำเร็จ: {e}")
     if st.sidebar.button("กลับไปเข้าสู่ระบบ"):
         st.session_state.auth_mode = "login"
 
-# --- If logged in, show chat ---
+# --- MAIN APP UI ---
 if st.session_state.get("logged_in"):
     st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
     logo = Image.open("logo.png")
@@ -89,3 +89,14 @@ if st.session_state.get("logged_in"):
         with st.chat_message("assistant", avatar="logo.png"):
             st.markdown(assistant_reply)
         st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
+
+        # Save to Supabase
+        try:
+            supabase.table("symptom_logs").insert({
+                "user_email": st.session_state["user_email"],
+                "symptom": user_input,
+                "response": assistant_reply,
+                "created_at": datetime.now().isoformat()
+            }).execute()
+        except Exception as e:
+            st.warning(f"⚠️ ไม่สามารถบันทึกประวัติ: {e}")
