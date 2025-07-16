@@ -62,6 +62,10 @@ if st.session_state.get("logged_in"):
     st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
     logo = Image.open("logo.png")
     st.image(logo, width=200)
+    
+    if st.button("🚪 ออกจากระบบ"):
+        st.session_state.clear()
+        st.rerun()
 
     # --- Load chat history from Supabase ---
     if "messages" not in st.session_state:
