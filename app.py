@@ -12,12 +12,12 @@ st.set_page_config(page_title="น้องช่วย", layout="wide")
 # --- Load Environment Variables ---
 load_dotenv()
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
-SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+SUPABASE_SECRET_KEY = st.secrets["SUPABASE_SECRET_KEY"]
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 openai.api_key = OPENAI_API_KEY
 
 # --- Connect to Supabase ---
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
 
 # --- App Title ---
 st.title("🔐 เข้าสู่ระบบ / สมัครสมาชิก")
