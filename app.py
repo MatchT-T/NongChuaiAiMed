@@ -100,10 +100,9 @@ if st.session_state.get("logged_in"):
         # --- Save to Supabase ---
         try:
             supabase.table("symptom_history").insert({
-                "user_id": user_id,
-                "timestamp": datetime.now().isoformat(),
-                "message": user_input,
-                "reply": assistant_reply
-            }).execute()
+    "user_id": st.session_state.user.id,
+    "message": user_input,
+    "reply": assistant_reply
+     }).execute()
         except Exception as e:
             st.error(f"บันทึกประวัติล้มเหลว: {e}")
