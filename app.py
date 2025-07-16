@@ -67,16 +67,12 @@ if not st.session_state.get("logged_in"):
 if st.session_state.get("logged_in"):
     user_id = st.session_state.user.id
     st.markdown("<h1 style='text-align: center;'>น้องช่วย AI Healthcare Assistant</h1>", unsafe_allow_html=True)
-    logo = Image.open("logo.png")
-st.markdown(
-    f"""
-    <div style='text-align: center;'>
-        <img src='data:image/png;base64,{st.image(logo, output_format="PNG", use_column_width=False).data}' width='200'/>
-        <h1>น้องช่วย AI Healthcare Assistant</h1>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    # Load and center the logo
+logo = Image.open("logo.png")
+col1, col2, col3 = st.columns([1, 2, 1])  # Middle column is wider
+with col2:
+    st.image(logo, width=200)
+
     
     if st.button("🚪 ออกจากระบบ"):
         st.session_state.clear()
